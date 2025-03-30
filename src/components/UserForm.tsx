@@ -29,7 +29,11 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(userData);
-    document.querySelector('[data-dialog-close]')?.click();
+    // Use a safer method to close the dialog
+    const closeButton = document.querySelector('[data-dialog-close]') as HTMLElement;
+    if (closeButton) {
+      closeButton.click();
+    }
   };
 
   const handleChange = (field: string, value: string) => {

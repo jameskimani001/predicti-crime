@@ -23,18 +23,22 @@ const ModelForm: React.FC<ModelFormProps> = ({ model, onSubmit }) => {
     id: model?.id || '',
     name: model?.name || '',
     type: model?.type || 'Classification',
-    accuracy: model?.accuracy || 80.0,
+    accuracy: model?.accuracy || 85.0,
     lastTrained: model?.lastTrained || new Date().toISOString().split('T')[0],
-    status: model?.status || 'development'
+    status: model?.status || 'active'
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(modelData);
-    document.querySelector('[data-dialog-close]')?.click();
+    // Use a safer method to close the dialog
+    const closeButton = document.querySelector('[data-dialog-close]') as HTMLElement;
+    if (closeButton) {
+      closeButton.click();
+    }
   };
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: string | number) => {
     setModelData({ ...modelData, [field]: value });
   };
 
@@ -61,10 +65,9 @@ const ModelForm: React.FC<ModelFormProps> = ({ model, onSubmit }) => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="Classification">Classification</SelectItem>
-            <SelectItem value="Regression">Regression</SelectItem>
             <SelectItem value="Clustering">Clustering</SelectItem>
+            <SelectItem value="Regression">Regression</SelectItem>
             <SelectItem value="Time Series">Time Series</SelectItem>
-            <SelectItem value="Neural Network">Neural Network</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -79,6 +82,7 @@ const ModelForm: React.FC<ModelFormProps> = ({ model, onSubmit }) => {
           step="0.1"
           value={modelData.accuracy}
           onChange={(e) => handleChange('accuracy', parseFloat(e.target.value))}
+          required
         />
       </div>
       
@@ -92,9 +96,9 @@ const ModelForm: React.FC<ModelFormProps> = ({ model, onSubmit }) => {
             <SelectValue placeholder="Select status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="development">In Development</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value="development">In Development</SelectItem>
           </SelectContent>
         </Select>
       </div>
