@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   FileText, 
   Search, 
@@ -12,9 +13,12 @@ import {
   Clock, 
   MapPin, 
   AlertTriangle, 
-  EyeIcon 
+  EyeIcon,
+  PlusCircle,
+  List
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import CrimeReportForm from '@/components/CrimeReportForm';
 
 const Reports: React.FC = () => {
   const { crimeRecords, isLoading } = useCrimeData();
@@ -73,77 +77,101 @@ const Reports: React.FC = () => {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Crime Reports</h1>
         <p className="text-muted-foreground">
-          View and analyze crime reports and incidents
+          View crime reports and submit new incidents
         </p>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            className="pl-8"
-            placeholder="Search reports by type, location, or description..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <Button variant="outline">
-          <Filter className="mr-2 h-4 w-4" /> Filter
-        </Button>
-      </div>
+      <Tabs defaultValue="view" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="view" className="flex items-center">
+            <List className="mr-2 h-4 w-4" /> View Reports
+          </TabsTrigger>
+          <TabsTrigger value="report" className="flex items-center">
+            <PlusCircle className="mr-2 h-4 w-4" /> Report Crime
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="view" className="space-y-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                className="pl-8"
+                placeholder="Search reports by type, location, or description..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <Button variant="outline">
+              <Filter className="mr-2 h-4 w-4" /> Filter
+            </Button>
+          </div>
 
-      {isLoading ? (
-        <div className="space-y-4">
-          {Array(5).fill(0).map((_, index) => (
-            <Skeleton key={index} className="h-36" />
-          ))}
-        </div>
-      ) : filteredCrimes.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center h-40">
-            <AlertTriangle className="h-10 w-10 text-muted-foreground mb-2" />
-            <p className="text-muted-foreground">No crime reports found matching your criteria</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {filteredCrimes.map((crime) => (
-            <Card key={crime.id}>
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-                  <div className="flex items-center mb-2 md:mb-0">
-                    <FileText className="h-5 w-5 mr-2 text-primary" />
-                    <h2 className="text-xl font-semibold">{crime.type}</h2>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    {getStatusBadge(crime.status)}
-                    {getSeverityBadge(crime.severity)}
-                  </div>
-                </div>
-                
-                <p className="mb-4">{crime.description}</p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground mb-4">
-                  <div className="flex items-center">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    <span>{crime.location.address}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Clock className="h-4 w-4 mr-2" />
-                    <span>{formatDate(crime.datetime)}</span>
-                  </div>
-                </div>
-                
-                <div className="flex justify-end">
-                  <Button variant="outline" size="sm">
-                    <EyeIcon className="h-4 w-4 mr-2" /> View Details
-                  </Button>
-                </div>
+          {isLoading ? (
+            <div className="space-y-4">
+              {Array(5).fill(0).map((_, index) => (
+                <Skeleton key={index} className="h-36" />
+              ))}
+            </div>
+          ) : filteredCrimes.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center h-40">
+                <AlertTriangle className="h-10 w-10 text-muted-foreground mb-2" />
+                <p className="text-muted-foreground">No crime reports found matching your criteria</p>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      )}
+          ) : (
+            <div className="space-y-4">
+              {filteredCrimes.map((crime) => (
+                <Card key={crime.id}>
+                  <CardContent className="p-6">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                      <div className="flex items-center mb-2 md:mb-0">
+                        <FileText className="h-5 w-5 mr-2 text-primary" />
+                        <h2 className="text-xl font-semibold">{crime.type}</h2>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {getStatusBadge(crime.status)}
+                        {getSeverityBadge(crime.severity)}
+                      </div>
+                    </div>
+                    
+                    <p className="mb-4">{crime.description}</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground mb-4">
+                      <div className="flex items-center">
+                        <MapPin className="h-4 w-4 mr-2" />
+                        <span>{crime.location.address}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <Clock className="h-4 w-4 mr-2" />
+                        <span>{formatDate(crime.datetime)}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-end">
+                      <Button variant="outline" size="sm">
+                        <EyeIcon className="h-4 w-4 mr-2" /> View Details
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="report">
+          <Card>
+            <CardHeader>
+              <CardTitle>Submit a Crime Report</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CrimeReportForm />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

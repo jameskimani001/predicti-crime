@@ -1,6 +1,7 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { toast } from '@/components/ui/use-toast';
+import { v4 as uuidv4 } from 'uuid';
 
 // Define crime data types
 export interface CrimeRecord {
@@ -15,6 +16,20 @@ export interface CrimeRecord {
   severity: number;
   description: string;
   status: 'open' | 'investigating' | 'resolved';
+  witness?: string;
+}
+
+export interface NewCrimeReport {
+  type: string;
+  location: {
+    lat: number;
+    lng: number;
+    address: string;
+  };
+  datetime: string;
+  description: string;
+  severity: number;
+  witness?: string;
 }
 
 export interface CrimeStat {
@@ -43,6 +58,18 @@ interface CrimeDataContextValue {
   crimeHotspots: CrimeHotspot[];
   isLoading: boolean;
   fetchCrimeData: () => Promise<void>;
+  submitCrimeReport: (report: NewCrimeReport) => Promise<void>;
+  notifications: Notification[];
+  markNotificationAsRead: (id: string) => void;
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  timestamp: string;
+  isRead: boolean;
+  type: 'new_report' | 'status_change' | 'system';
 }
 
 // Mock Kenyan data
@@ -205,6 +232,7 @@ export const CrimeDataProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [crimeRecords, setCrimeRecords] = useState<CrimeRecord[]>([]);
   const [crimeStats, setCrimeStats] = useState<CrimeStat[]>([]);
   const [crimeHotspots, setCrimeHotspots] = useState<CrimeHotspot[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const fetchCrimeData = async () => {
@@ -226,6 +254,65 @@ export const CrimeDataProvider: React.FC<{ children: ReactNode }> = ({ children 
     });
   };
 
+  // Submit a new crime report
+  const submitCrimeReport = async (report: NewCrimeReport) => {
+    setIsLoading(true);
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Create a new crime record
+    const newCrimeRecord: CrimeRecord = {
+      id: uuidv4(),
+      ...report,
+      status: 'open',
+    };
+    
+    // Update crime records
+    setCrimeRecords(prev => [newCrimeRecord, ...prev]);
+    
+    // Create notification for admin and law enforcement
+    const newNotification: Notification = {
+      id: uuidv4(),
+      title: `New ${report.type} Report`,
+      message: `A new ${report.type} was reported at ${report.location.address}. Severity: ${report.severity}/10.`,
+      timestamp: new Date().toISOString(),
+      isRead: false,
+      type: 'new_report'
+    };
+    
+    // Add notification
+    setNotifications(prev => [newNotification, ...prev]);
+    
+    setIsLoading(false);
+    
+    // Trigger a push notification (in a real app, this would be done on the server)
+    if (Notification.permission === 'granted') {
+      new Notification('New Crime Report', {
+        body: `A new ${report.type} was reported at ${report.location.address}.`,
+        icon: '/favicon.ico'
+      });
+    }
+  };
+
+  // Mark notification as read
+  const markNotificationAsRead = (id: string) => {
+    setNotifications(prev => 
+      prev.map(notification => 
+        notification.id === id 
+          ? { ...notification, isRead: true } 
+          : notification
+      )
+    );
+  };
+
+  // Request notification permission
+  useEffect(() => {
+    if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+      Notification.requestPermission();
+    }
+  }, []);
+
   // Load initial data
   useEffect(() => {
     fetchCrimeData();
@@ -238,7 +325,10 @@ export const CrimeDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         crimeStats,
         crimeHotspots,
         isLoading,
-        fetchCrimeData
+        fetchCrimeData,
+        submitCrimeReport,
+        notifications,
+        markNotificationAsRead
       }}
     >
       {children}

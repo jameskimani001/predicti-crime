@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCrimeData } from '@/contexts/CrimeDataContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,69 +9,6 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle, Bell, Map, Clock, CheckCircle, Eye } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
-
-// Mock alerts data
-const mockAlerts = [
-  {
-    id: '1',
-    title: 'Significant crime increase in Downtown',
-    location: 'Downtown District',
-    timestamp: '2023-05-25T14:30:00',
-    priority: 'high',
-    status: 'new',
-    description: 'There has been a 30% increase in theft incidents in the downtown area over the past 48 hours.'
-  },
-  {
-    id: '2',
-    title: 'New crime pattern detected',
-    location: 'Residential Area North',
-    timestamp: '2023-05-24T10:15:00',
-    priority: 'medium',
-    status: 'new',
-    description: 'A new pattern of car break-ins has been detected in the northern residential area.'
-  },
-  {
-    id: '3',
-    title: 'Monthly crime report generated',
-    location: 'System-wide',
-    timestamp: '2023-05-23T08:00:00',
-    priority: 'low',
-    status: 'read',
-    description: 'The monthly crime statistics report for April 2023 has been generated and is ready for review.'
-  },
-  {
-    id: '4',
-    title: 'Potential drug activity hotspot',
-    location: 'Park District',
-    timestamp: '2023-05-22T22:45:00',
-    priority: 'high',
-    status: 'read',
-    description: 'Multiple reports of suspicious activity indicate a potential drug dealing hotspot forming in the central park area.'
-  },
-  {
-    id: '5',
-    title: 'Prediction model accuracy improved',
-    location: 'System-wide',
-    timestamp: '2023-05-21T16:20:00',
-    priority: 'medium',
-    status: 'read',
-    description: 'The crime prediction model has been retrained with new data, resulting in a 5% improvement in accuracy.'
-  }
-];
-
-// Get priority badge
-const getPriorityBadge = (priority: string) => {
-  switch (priority) {
-    case 'high':
-      return <Badge className="bg-crime-veryhigh">High Priority</Badge>;
-    case 'medium':
-      return <Badge className="bg-crime-medium">Medium Priority</Badge>;
-    case 'low':
-      return <Badge className="bg-crime-low">Low Priority</Badge>;
-    default:
-      return <Badge>{priority}</Badge>;
-  }
-};
 
 // Format date
 const formatDate = (dateString: string) => {
@@ -85,15 +23,29 @@ const formatDate = (dateString: string) => {
 
 const Alerts: React.FC = () => {
   const { user } = useAuth();
+  const { notifications, markNotificationAsRead } = useCrimeData();
   
   // Redirect if not law enforcement
   if (!user || (user.role !== 'law_enforcement' && user.role !== 'admin')) {
     return <Navigate to="/" />;
   }
 
-  // Filter alerts by status
-  const newAlerts = mockAlerts.filter(alert => alert.status === 'new');
-  const readAlerts = mockAlerts.filter(alert => alert.status === 'read');
+  // Filter alerts by read status
+  const unreadNotifications = notifications.filter(notification => !notification.isRead);
+  
+  // Get priority badge for notification
+  const getNotificationBadge = (type: string) => {
+    switch (type) {
+      case 'new_report':
+        return <Badge className="bg-crime-veryhigh">New Report</Badge>;
+      case 'status_change':
+        return <Badge className="bg-crime-medium">Status Change</Badge>;
+      case 'system':
+        return <Badge className="bg-crime-low">System</Badge>;
+      default:
+        return <Badge>{type}</Badge>;
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -141,15 +93,15 @@ const Alerts: React.FC = () => {
       <Tabs defaultValue="new">
         <TabsList className="mb-4">
           <TabsTrigger value="new" className="flex items-center">
-            <AlertTriangle className="h-4 w-4 mr-2" /> New Alerts ({newAlerts.length})
+            <AlertTriangle className="h-4 w-4 mr-2" /> New Alerts ({unreadNotifications.length})
           </TabsTrigger>
           <TabsTrigger value="all" className="flex items-center">
-            <Bell className="h-4 w-4 mr-2" /> All Alerts ({mockAlerts.length})
+            <Bell className="h-4 w-4 mr-2" /> All Alerts ({notifications.length})
           </TabsTrigger>
         </TabsList>
         
         <TabsContent value="new" className="space-y-4">
-          {newAlerts.length === 0 ? (
+          {unreadNotifications.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-8">
                 <CheckCircle className="h-12 w-12 text-green-500 mb-4" />
@@ -158,39 +110,31 @@ const Alerts: React.FC = () => {
               </CardContent>
             </Card>
           ) : (
-            newAlerts.map((alert) => (
-              <Card key={alert.id} className="relative overflow-hidden">
-                {alert.priority === 'high' && (
-                  <div className="absolute top-0 left-0 w-1 h-full bg-crime-veryhigh"></div>
-                )}
-                {alert.priority === 'medium' && (
-                  <div className="absolute top-0 left-0 w-1 h-full bg-crime-medium"></div>
-                )}
-                {alert.priority === 'low' && (
-                  <div className="absolute top-0 left-0 w-1 h-full bg-crime-low"></div>
-                )}
-                
+            unreadNotifications.map((notification) => (
+              <Card key={notification.id} className="relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1 h-full bg-crime-veryhigh"></div>
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                     <div>
-                      <h2 className="text-xl font-semibold">{alert.title}</h2>
+                      <h2 className="text-xl font-semibold">{notification.title}</h2>
                       <div className="flex items-center text-sm text-muted-foreground mt-1">
-                        <Map className="h-4 w-4 mr-1" />
-                        <span>{alert.location}</span>
-                        <span className="mx-2">•</span>
                         <Clock className="h-4 w-4 mr-1" />
-                        <span>{formatDate(alert.timestamp)}</span>
+                        <span>{formatDate(notification.timestamp)}</span>
                       </div>
                     </div>
                     <div className="mt-2 md:mt-0">
-                      {getPriorityBadge(alert.priority)}
+                      {getNotificationBadge(notification.type)}
                     </div>
                   </div>
                   
-                  <p className="mb-4">{alert.description}</p>
+                  <p className="mb-4">{notification.message}</p>
                   
                   <div className="flex justify-end space-x-2">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => markNotificationAsRead(notification.id)}
+                    >
                       <Eye className="h-4 w-4 mr-2" /> Mark as Read
                     </Button>
                     <Button size="sm">
@@ -204,50 +148,58 @@ const Alerts: React.FC = () => {
         </TabsContent>
         
         <TabsContent value="all" className="space-y-4">
-          {mockAlerts.map((alert) => (
-            <Card key={alert.id} className={`relative overflow-hidden ${alert.status === 'read' ? 'opacity-80' : ''}`}>
-              {alert.priority === 'high' && (
-                <div className="absolute top-0 left-0 w-1 h-full bg-crime-veryhigh"></div>
-              )}
-              {alert.priority === 'medium' && (
-                <div className="absolute top-0 left-0 w-1 h-full bg-crime-medium"></div>
-              )}
-              {alert.priority === 'low' && (
-                <div className="absolute top-0 left-0 w-1 h-full bg-crime-low"></div>
-              )}
-              
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-                  <div>
-                    <div className="flex items-center">
-                      <h2 className="text-xl font-semibold">{alert.title}</h2>
-                      {alert.status === 'read' && (
-                        <CheckCircle className="h-4 w-4 ml-2 text-green-500" />
-                      )}
-                    </div>
-                    <div className="flex items-center text-sm text-muted-foreground mt-1">
-                      <Map className="h-4 w-4 mr-1" />
-                      <span>{alert.location}</span>
-                      <span className="mx-2">•</span>
-                      <Clock className="h-4 w-4 mr-1" />
-                      <span>{formatDate(alert.timestamp)}</span>
-                    </div>
-                  </div>
-                  <div className="mt-2 md:mt-0">
-                    {getPriorityBadge(alert.priority)}
-                  </div>
-                </div>
-                
-                <p className="mb-4">{alert.description}</p>
-                
-                <div className="flex justify-end">
-                  <Button variant="outline" size="sm">
-                    View Details
-                  </Button>
-                </div>
+          {notifications.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-8">
+                <Bell className="h-12 w-12 text-muted-foreground mb-4" />
+                <p className="text-lg font-medium">No notifications</p>
+                <p className="text-muted-foreground">You don't have any notifications yet</p>
               </CardContent>
             </Card>
-          ))}
+          ) : (
+            notifications.map((notification) => (
+              <Card key={notification.id} className={`relative overflow-hidden ${notification.isRead ? 'opacity-80' : ''}`}>
+                <div className="absolute top-0 left-0 w-1 h-full bg-crime-veryhigh"></div>
+                <CardContent className="p-6">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                    <div>
+                      <div className="flex items-center">
+                        <h2 className="text-xl font-semibold">{notification.title}</h2>
+                        {notification.isRead && (
+                          <CheckCircle className="h-4 w-4 ml-2 text-green-500" />
+                        )}
+                      </div>
+                      <div className="flex items-center text-sm text-muted-foreground mt-1">
+                        <Clock className="h-4 w-4 mr-1" />
+                        <span>{formatDate(notification.timestamp)}</span>
+                      </div>
+                    </div>
+                    <div className="mt-2 md:mt-0">
+                      {getNotificationBadge(notification.type)}
+                    </div>
+                  </div>
+                  
+                  <p className="mb-4">{notification.message}</p>
+                  
+                  <div className="flex justify-end">
+                    {!notification.isRead ? (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mr-2"
+                        onClick={() => markNotificationAsRead(notification.id)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" /> Mark as Read
+                      </Button>
+                    ) : null}
+                    <Button variant="outline" size="sm">
+                      View Details
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </TabsContent>
       </Tabs>
     </div>
