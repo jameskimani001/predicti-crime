@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { v4 as uuidv4 } from 'uuid';
@@ -228,12 +227,42 @@ const MOCK_CRIME_HOTSPOTS: CrimeHotspot[] = [
 // Create the context
 const CrimeDataContext = createContext<CrimeDataContextValue | undefined>(undefined);
 
+// Load data from localStorage or use initial mock data
+const getSavedCrimeRecords = (): CrimeRecord[] => {
+  try {
+    const savedRecords = localStorage.getItem('crimeRecords');
+    return savedRecords ? JSON.parse(savedRecords) : MOCK_CRIME_RECORDS;
+  } catch (error) {
+    console.error("Error loading crime records from localStorage:", error);
+    return MOCK_CRIME_RECORDS;
+  }
+};
+
+const getSavedNotifications = (): Notification[] => {
+  try {
+    const savedNotifications = localStorage.getItem('notifications');
+    return savedNotifications ? JSON.parse(savedNotifications) : [];
+  } catch (error) {
+    console.error("Error loading notifications from localStorage:", error);
+    return [];
+  }
+};
+
 export const CrimeDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [crimeRecords, setCrimeRecords] = useState<CrimeRecord[]>([]);
-  const [crimeStats, setCrimeStats] = useState<CrimeStat[]>([]);
-  const [crimeHotspots, setCrimeHotspots] = useState<CrimeHotspot[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [crimeRecords, setCrimeRecords] = useState<CrimeRecord[]>(getSavedCrimeRecords());
+  const [crimeStats, setCrimeStats] = useState<CrimeStat[]>(MOCK_CRIME_STATS);
+  const [crimeHotspots, setCrimeHotspots] = useState<CrimeHotspot[]>(MOCK_CRIME_HOTSPOTS);
+  const [notifications, setNotifications] = useState<Notification[]>(getSavedNotifications());
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Save to localStorage when data changes
+  useEffect(() => {
+    localStorage.setItem('crimeRecords', JSON.stringify(crimeRecords));
+  }, [crimeRecords]);
+
+  useEffect(() => {
+    localStorage.setItem('notifications', JSON.stringify(notifications));
+  }, [notifications]);
 
   const fetchCrimeData = async () => {
     setIsLoading(true);
@@ -241,8 +270,11 @@ export const CrimeDataProvider: React.FC<{ children: ReactNode }> = ({ children 
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Set mock data
-    setCrimeRecords(MOCK_CRIME_RECORDS);
+    // Use saved records instead of always setting to mock data
+    if (crimeRecords.length === 0) {
+      setCrimeRecords(getSavedCrimeRecords());
+    }
+    
     setCrimeStats(MOCK_CRIME_STATS);
     setCrimeHotspots(MOCK_CRIME_HOTSPOTS);
     
@@ -269,7 +301,11 @@ export const CrimeDataProvider: React.FC<{ children: ReactNode }> = ({ children 
     };
     
     // Update crime records
-    setCrimeRecords(prev => [newCrimeRecord, ...prev]);
+    const updatedRecords = [newCrimeRecord, ...crimeRecords];
+    setCrimeRecords(updatedRecords);
+    
+    // Save to localStorage immediately to prevent loss on refresh
+    localStorage.setItem('crimeRecords', JSON.stringify(updatedRecords));
     
     // Create notification for admin and law enforcement
     const newNotification: Notification = {
@@ -282,7 +318,11 @@ export const CrimeDataProvider: React.FC<{ children: ReactNode }> = ({ children 
     };
     
     // Add notification
-    setNotifications(prev => [newNotification, ...prev]);
+    const updatedNotifications = [newNotification, ...notifications];
+    setNotifications(updatedNotifications);
+    
+    // Save notifications to localStorage immediately
+    localStorage.setItem('notifications', JSON.stringify(updatedNotifications));
     
     setIsLoading(false);
     
@@ -297,13 +337,16 @@ export const CrimeDataProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   // Mark notification as read
   const markNotificationAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === id 
-          ? { ...notification, isRead: true } 
-          : notification
-      )
+    const updatedNotifications = notifications.map(notification => 
+      notification.id === id 
+        ? { ...notification, isRead: true } 
+        : notification
     );
+    
+    setNotifications(updatedNotifications);
+    
+    // Save updated notifications to localStorage
+    localStorage.setItem('notifications', JSON.stringify(updatedNotifications));
   };
 
   // Request notification permission

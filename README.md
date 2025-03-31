@@ -12,6 +12,7 @@ This is a comprehensive crime reporting and management system designed for Kenya
 ## Key Features
 
 - **Public Crime Reporting**: Citizens can submit crime reports with detailed information including location, time, description, and witness details.
+- **Data Persistence**: All submitted crime reports are stored locally and persist across page refreshes.
 - **Real-time Notifications**: Administrators and police receive immediate notifications when new crimes are reported.
 - **Crime Management**: Full CRUD operations for managing crime reports with status tracking (open, investigating, resolved).
 - **Analytics Dashboard**: Visual representation of crime statistics, trends, and patterns.
@@ -31,6 +32,7 @@ This project is built with modern web technologies:
 - **Data Visualization**: Recharts
 - **Icons**: Lucide React
 - **Form Handling**: React Hook Form with Zod validation
+- **Local Storage**: Browser's localStorage for data persistence
 
 ## Getting Started
 
@@ -79,6 +81,7 @@ To deploy this application:
 - **Multi-language Support**: Add Swahili and other local language options
 - **Emergency Response**: Integration with emergency services
 - **Community Watch**: Neighborhood alert system
+- **Cloud Database Integration**: Move from localStorage to a persistent cloud database
 
 ## Contributing
 
