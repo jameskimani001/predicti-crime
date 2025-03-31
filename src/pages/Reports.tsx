@@ -15,24 +15,48 @@ import {
   AlertTriangle, 
   EyeIcon,
   PlusCircle,
-  List
+  List,
+  Download,
+  CalendarIcon,
+  UserCircle2
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import CrimeReportForm from '@/components/CrimeReportForm';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from '@/hooks/use-toast';
+import { CrimeRecord } from '@/contexts/CrimeDataContext';
 
 const Reports: React.FC = () => {
   const { crimeRecords, isLoading } = useCrimeData();
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedCrime, setSelectedCrime] = useState<CrimeRecord | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
-  // Filter crimes based on search query
+  // Filter crimes based on search query and status
   const filteredCrimes = crimeRecords.filter((crime) => {
     const query = searchQuery.toLowerCase();
-    return (
+    const matchesQuery = 
       crime.type.toLowerCase().includes(query) ||
       crime.location.address.toLowerCase().includes(query) ||
       crime.description.toLowerCase().includes(query) ||
-      crime.status.toLowerCase().includes(query)
-    );
+      crime.status.toLowerCase().includes(query);
+    
+    return statusFilter === 'all' 
+      ? matchesQuery 
+      : matchesQuery && crime.status === statusFilter;
   });
 
   // Function to format date
@@ -72,6 +96,45 @@ const Reports: React.FC = () => {
     }
   };
 
+  // Function to view crime details
+  const viewCrimeDetails = (crime: CrimeRecord) => {
+    setSelectedCrime(crime);
+    setDialogOpen(true);
+  };
+
+  // Export to CSV function
+  const exportToCSV = () => {
+    // Create CSV content
+    const headers = ['Type', 'Location', 'Date/Time', 'Status', 'Severity', 'Description'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredCrimes.map(crime => [
+        `"${crime.type}"`,
+        `"${crime.location.address}"`,
+        `"${formatDate(crime.datetime)}"`,
+        `"${crime.status}"`,
+        crime.severity,
+        `"${crime.description.replace(/"/g, '""')}"`
+      ].join(','))
+    ].join('\n');
+
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `crime-reports-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Export Successful",
+      description: `${filteredCrimes.length} crime reports have been exported to CSV.`,
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -102,8 +165,30 @@ const Reports: React.FC = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button variant="outline">
-              <Filter className="mr-2 h-4 w-4" /> Filter
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <Filter className="mr-2 h-4 w-4" /> Filter
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setStatusFilter('all')}>
+                  All Status
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter('open')}>
+                  Open
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter('investigating')}>
+                  Investigating
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter('resolved')}>
+                  Resolved
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            <Button variant="outline" onClick={exportToCSV} disabled={filteredCrimes.length === 0}>
+              <Download className="mr-2 h-4 w-4" /> Export CSV
             </Button>
           </div>
 
@@ -123,7 +208,7 @@ const Reports: React.FC = () => {
           ) : (
             <div className="space-y-4">
               {filteredCrimes.map((crime) => (
-                <Card key={crime.id}>
+                <Card key={crime.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                       <div className="flex items-center mb-2 md:mb-0">
@@ -136,7 +221,7 @@ const Reports: React.FC = () => {
                       </div>
                     </div>
                     
-                    <p className="mb-4">{crime.description}</p>
+                    <p className="mb-4 line-clamp-2">{crime.description}</p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground mb-4">
                       <div className="flex items-center">
@@ -150,7 +235,11 @@ const Reports: React.FC = () => {
                     </div>
                     
                     <div className="flex justify-end">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => viewCrimeDetails(crime)}
+                      >
                         <EyeIcon className="h-4 w-4 mr-2" /> View Details
                       </Button>
                     </div>
@@ -172,6 +261,67 @@ const Reports: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Crime Details Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-xl">
+          {selectedCrime && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center text-xl">
+                  <FileText className="h-5 w-5 mr-2" />
+                  {selectedCrime.type} Report
+                </DialogTitle>
+                <DialogDescription>
+                  Case ID: {selectedCrime.id.slice(0, 8).toUpperCase()}
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4 py-4">
+                <div className="flex justify-between items-center">
+                  <div className="space-x-2">
+                    {getStatusBadge(selectedCrime.status)}
+                    {getSeverityBadge(selectedCrime.severity)}
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="font-medium mb-2">Description</h3>
+                  <p className="text-sm text-muted-foreground">{selectedCrime.description}</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-medium mb-2 flex items-center">
+                      <MapPin className="h-4 w-4 mr-2" /> Location
+                    </h3>
+                    <p className="text-sm text-muted-foreground">{selectedCrime.location.address}</p>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Coordinates: {selectedCrime.location.lat.toFixed(4)}, {selectedCrime.location.lng.toFixed(4)}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-medium mb-2 flex items-center">
+                      <CalendarIcon className="h-4 w-4 mr-2" /> Date & Time
+                    </h3>
+                    <p className="text-sm text-muted-foreground">{formatDate(selectedCrime.datetime)}</p>
+                  </div>
+                </div>
+                
+                {selectedCrime.witness && (
+                  <div>
+                    <h3 className="font-medium mb-2 flex items-center">
+                      <UserCircle2 className="h-4 w-4 mr-2" /> Witness Information
+                    </h3>
+                    <p className="text-sm text-muted-foreground">{selectedCrime.witness}</p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
