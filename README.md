@@ -1,69 +1,89 @@
-# Welcome to your Lovable project
 
-## Project info
+# Crime Reporting System
 
-**URL**: https://lovable.dev/projects/15534d60-4c2d-474b-9ac6-4e990d08abd0
+## Project Overview
 
-## How can I edit this code?
+This is a comprehensive crime reporting and management system designed for Kenya. It allows citizens to report crimes and enables law enforcement to track, manage, and analyze crime data effectively.
 
-There are several ways of editing your application.
+## URL
 
-**Use Lovable**
+**Project URL**: https://lovable.dev/projects/15534d60-4c2d-474b-9ac6-4e990d08abd0
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/15534d60-4c2d-474b-9ac6-4e990d08abd0) and start prompting.
+## Key Features
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Public Crime Reporting**: Citizens can submit crime reports with detailed information including location, time, description, and witness details.
+- **Real-time Notifications**: Administrators and police receive immediate notifications when new crimes are reported.
+- **Crime Management**: Full CRUD operations for managing crime reports with status tracking (open, investigating, resolved).
+- **Analytics Dashboard**: Visual representation of crime statistics, trends, and patterns.
+- **Crime Hotspots**: Interactive map showing areas with high crime rates.
+- **Export Functionality**: Export crime reports to CSV for offline analysis.
+- **User Management**: Administrative tools for managing users and access control.
+- **Mobile Responsive**: Fully responsive design that works across all devices.
 
-**Use your preferred IDE**
+## Technologies Used
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+This project is built with modern web technologies:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **Frontend**: React with TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: shadcn/ui
+- **Build Tool**: Vite
+- **Data Visualization**: Recharts
+- **Icons**: Lucide React
+- **Form Handling**: React Hook Form with Zod validation
 
-Follow these steps:
+## Getting Started
+
+### Using Lovable
+
+Simply visit the [Lovable Project](https://lovable.dev/projects/15534d60-4c2d-474b-9ac6-4e990d08abd0) and start interacting with the application directly.
+
+### Local Development
+
+If you want to work locally:
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
+# Navigate to the project directory
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
+# Install dependencies
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Project Structure
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- `/src/pages`: Main application pages
+- `/src/components`: Reusable UI components
+- `/src/contexts`: Application state management
+- `/src/hooks`: Custom React hooks
+- `/src/lib`: Utility functions and configurations
 
-**Use GitHub Codespaces**
+## Deployment
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+To deploy this application:
 
-## What technologies are used for this project?
+1. Open [Lovable](https://lovable.dev/projects/15534d60-4c2d-474b-9ac6-4e990d08abd0)
+2. Click on Share -> Publish
 
-This project is built with .
+## Future Enhancements
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **SMS Notifications**: Send SMS alerts to users and law enforcement
+- **Evidence Upload**: Allow uploading of photos and videos as evidence
+- **AI-Powered Analysis**: Implement machine learning for crime prediction
+- **Multi-language Support**: Add Swahili and other local language options
+- **Emergency Response**: Integration with emergency services
+- **Community Watch**: Neighborhood alert system
 
-## How can I deploy this project?
+## Contributing
 
-Simply open [Lovable](https://lovable.dev/projects/15534d60-4c2d-474b-9ac6-4e990d08abd0) and click on Share -> Publish.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## I want to use a custom domain - is that possible?
+## License
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+This project is licensed under the MIT License.
