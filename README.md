@@ -12,7 +12,6 @@ This is a comprehensive crime reporting and management system designed for Kenya
 - **Data Persistence**: All submitted crime reports are stored locally and persist across page refreshes.
 - **Real-time Notifications**: Administrators and police receive immediate notifications when new crimes are reported.
 - **Crime Management**: Full CRUD operations for managing crime reports with status tracking (open, investigating, resolved).
-- **Case Status Updates**: Administrators and law enforcement officers can change the status of reported cases (open, investigating, resolved) to track progress.
 - **Analytics Dashboard**: Visual representation of crime statistics, trends, and patterns.
 - **Crime Hotspots**: Interactive map showing areas with high crime rates.
 - **Export Functionality**: Export crime reports to CSV for offline analysis.
@@ -81,27 +80,6 @@ Click "Deploy Site", and Netlify will start the deployment process. Once finishe
 If you have a custom domain, you can add it in Site Settings > Domain Management and update your DNS records accordingly.
 
 Your website is now live on Netlify!
-
-## Access Control
-
-- **Public Users**: Can submit new crime reports and view reports.
-- **Administrators**: Have full access to all features including user management, case status updates, and data analysis.
-- **Law Enforcement**: Can update case statuses, access crime analytics, and view all reports.
-
-## Case Status Management
-
-The system supports a workflow for case management:
-- **Open**: Initial status when a case is first reported
-- **Investigating**: Status when law enforcement is actively working on the case
-- **Resolved**: Final status when the case has been closed
-
-Administrators and law enforcement officers can update case statuses from the Reports page by:
-1. Viewing case details
-2. Clicking the "Change Status" button
-3. Selecting the new status from the dropdown
-4. Confirming the status change
-
-All status changes are tracked and notifications are generated to keep relevant personnel informed.
 
 ## Future Enhancements
 
