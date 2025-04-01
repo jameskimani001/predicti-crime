@@ -11,6 +11,7 @@ import Layout from "@/components/Layout";
 // Pages
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
+import Register from "./pages/Register"; // Import the new Register page
 import Hotspots from "./pages/Hotspots";
 import Reports from "./pages/Reports";
 import Analytics from "./pages/Analytics";
@@ -18,6 +19,7 @@ import Admin from "./pages/Admin";
 import Alerts from "./pages/Alerts";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import Index from "./pages/Index";
 
 const queryClient = new QueryClient();
 
@@ -40,8 +42,10 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} /> {/* Add the new Register route */}
       
-      <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/" element={<Index />} />
+      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/hotspots" element={<ProtectedRoute><Hotspots /></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
       <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />

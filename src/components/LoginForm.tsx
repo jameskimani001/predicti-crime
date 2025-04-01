@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -112,6 +112,15 @@ const LoginForm: React.FC = () => {
             </Button>
           </form>
         </Form>
+        
+        <div className="mt-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            Don't have an account?{' '}
+            <Link to="/register" className="text-primary hover:underline">
+              Register
+            </Link>
+          </p>
+        </div>
         
         <div className="mt-8 pt-6 border-t text-center text-sm text-muted-foreground">
           <p>Demo accounts:</p>

@@ -18,6 +18,7 @@ interface AuthContextValue {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  register: (name: string, email: string, password: string) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -49,22 +50,100 @@ const MOCK_USERS = [
   },
 ];
 
+// Storage key for users
+const USERS_STORAGE_KEY = 'crimeUsers';
+const CURRENT_USER_KEY = 'crimeUser';
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [users, setUsers] = useState<Array<typeof MOCK_USERS[0]>>([]);
 
-  // Check for existing session on load
+  // Initialize users from localStorage and merge with mock users
   useEffect(() => {
-    const storedUser = localStorage.getItem('crimeUser');
+    // Load registered users
+    const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
+    let parsedUsers: Array<typeof MOCK_USERS[0]> = [];
+    
+    if (storedUsers) {
+      try {
+        parsedUsers = JSON.parse(storedUsers);
+      } catch (e) {
+        console.error('Error parsing stored users:', e);
+      }
+    }
+    
+    // Combine mock users with registered users, avoiding duplicates
+    const allUsers = [...MOCK_USERS];
+    parsedUsers.forEach(storedUser => {
+      if (!allUsers.some(u => u.email === storedUser.email)) {
+        allUsers.push(storedUser);
+      }
+    });
+    
+    setUsers(allUsers);
+    
+    // Check for current logged in user
+    const storedUser = localStorage.getItem(CURRENT_USER_KEY);
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
       } catch (e) {
-        localStorage.removeItem('crimeUser');
+        localStorage.removeItem(CURRENT_USER_KEY);
       }
     }
+    
     setIsLoading(false);
   }, []);
+
+  // Save users to localStorage when they change
+  useEffect(() => {
+    if (users.length > MOCK_USERS.length) {
+      // Only save custom users, not the mock ones
+      const customUsers = users.filter(
+        user => !MOCK_USERS.some(mockUser => mockUser.email === user.email)
+      );
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(customUsers));
+    }
+  }, [users]);
+
+  // Register function
+  const register = async (name: string, email: string, password: string) => {
+    setIsLoading(true);
+    
+    // Simulate network request
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Check if email already exists
+    if (users.some(u => u.email === email)) {
+      toast({
+        variant: 'destructive',
+        title: 'Registration Failed',
+        description: 'Email already in use.',
+      });
+      setIsLoading(false);
+      throw new Error('Email already in use');
+    }
+    
+    // Create new user
+    const newUser = {
+      id: crypto.randomUUID(),
+      name,
+      email,
+      password,
+      role: 'public' as UserRole, // Default role for new users
+    };
+    
+    // Add to users array
+    setUsers(prev => [...prev, newUser]);
+    
+    toast({
+      title: 'Registration Successful',
+      description: 'Your account has been created. You can now log in.',
+    });
+    
+    setIsLoading(false);
+  };
 
   // Login function
   const login = async (email: string, password: string) => {
@@ -74,7 +153,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Find user with matching credentials
-    const foundUser = MOCK_USERS.find(
+    const foundUser = users.find(
       (u) => u.email === email && u.password === password
     );
 
@@ -84,7 +163,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       // Save user to state and localStorage
       setUser(userWithoutPassword);
-      localStorage.setItem('crimeUser', JSON.stringify(userWithoutPassword));
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userWithoutPassword));
       
       toast({
         title: 'Login Successful',
@@ -96,6 +175,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         title: 'Login Failed',
         description: 'Invalid email or password.',
       });
+      throw new Error('Invalid credentials');
     }
 
     setIsLoading(false);
@@ -103,7 +183,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Logout function
   const logout = () => {
-    localStorage.removeItem('crimeUser');
+    localStorage.removeItem(CURRENT_USER_KEY);
     setUser(null);
     toast({
       title: 'Logged out',
@@ -112,7 +192,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, register, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

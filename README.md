@@ -5,10 +5,9 @@
 
 This is a comprehensive crime reporting and management system designed for Kenya. It allows citizens to report crimes and enables law enforcement to track, manage, and analyze crime data effectively.
 
-
-
 ## Key Features
 
+- **User Authentication**: Register with email/password and login to access the system. Demo accounts are also provided for different roles.
 - **Public Crime Reporting**: Citizens can submit crime reports with detailed information including location, time, description, and witness details.
 - **Data Persistence**: All submitted crime reports are stored locally and persist across page refreshes.
 - **Real-time Notifications**: Administrators and police receive immediate notifications when new crimes are reported.
