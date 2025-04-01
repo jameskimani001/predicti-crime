@@ -5,9 +5,7 @@
 
 This is a comprehensive crime reporting and management system designed for Kenya. It allows citizens to report crimes and enables law enforcement to track, manage, and analyze crime data effectively.
 
-## URL
 
-**Project URL**: https://lovable.dev/projects/15534d60-4c2d-474b-9ac6-4e990d08abd0
 
 ## Key Features
 
@@ -33,12 +31,6 @@ This project is built with modern web technologies:
 - **Icons**: Lucide React
 - **Form Handling**: React Hook Form with Zod validation
 - **Local Storage**: Browser's localStorage for data persistence
-
-## Getting Started
-
-### Using Lovable
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/15534d60-4c2d-474b-9ac6-4e990d08abd0) and start interacting with the application directly.
 
 ### Local Development
 
@@ -67,11 +59,28 @@ npm run dev
 - `/src/lib`: Utility functions and configurations
 
 ## Deployment
+Deploying on Netlify
+To deploy your website on Netlify, follow these steps:
 
-To deploy this application:
+1. Sign Up/Login to Netlify
+Go to Netlify and create an account or log in using your GitHub, GitLab, or Bitbucket account.
 
-1. Open [Lovable](https://lovable.dev/projects/15534d60-4c2d-474b-9ac6-4e990d08abd0)
-2. Click on Share -> Publish
+2. Prepare Your Website
+Make sure your website files (HTML, CSS, JavaScript, etc.) are ready. If you're using a build tool or framework (like React or Next.js), run the build process to generate production-ready files.
+
+3. Connect Your Git Repository (Optional)
+In the Netlify dashboard, click "New Site from Git", choose your Git provider (GitHub, GitLab, or Bitbucket), and select your repository.
+
+4. Configure Build Settings
+For most static websites, Netlify automatically detects the build settings. If needed, specify the build command (e.g., npm run build) and the directory to publish (e.g., build or dist).
+
+5. Deploy Your Site
+Click "Deploy Site", and Netlify will start the deployment process. Once finished, you'll receive a live URL like https://your-site-name.netlify.app.
+
+6. Add a Custom Domain (Optional)
+If you have a custom domain, you can add it in Site Settings > Domain Management and update your DNS records accordingly.
+
+Your website is now live on Netlify!
 
 ## Future Enhancements
 
@@ -90,3 +99,5 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 This project is licensed under the MIT License.
+
+## Well crafted with love, passion, and a touch of code magic. ✨💻
