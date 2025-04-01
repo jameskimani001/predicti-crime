@@ -58,6 +58,7 @@ interface CrimeDataContextValue {
   isLoading: boolean;
   fetchCrimeData: () => Promise<void>;
   submitCrimeReport: (report: NewCrimeReport) => Promise<void>;
+  updateCrimeStatus: (id: string, status: 'open' | 'investigating' | 'resolved') => Promise<void>;
   notifications: Notification[];
   markNotificationAsRead: (id: string) => void;
 }
@@ -335,6 +336,52 @@ export const CrimeDataProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
   };
 
+  // Update a crime record status
+  const updateCrimeStatus = async (id: string, status: 'open' | 'investigating' | 'resolved') => {
+    setIsLoading(true);
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Update crime records
+    const updatedRecords = crimeRecords.map(record => 
+      record.id === id ? { ...record, status } : record
+    );
+    
+    setCrimeRecords(updatedRecords);
+    
+    // Save to localStorage immediately to prevent loss on refresh
+    localStorage.setItem('crimeRecords', JSON.stringify(updatedRecords));
+    
+    // Create notification for status change
+    const updatedCrime = updatedRecords.find(record => record.id === id);
+    
+    if (updatedCrime) {
+      const newNotification: Notification = {
+        id: uuidv4(),
+        title: `Case Status Updated`,
+        message: `The status for ${updatedCrime.type} at ${updatedCrime.location.address} has been changed to ${status}.`,
+        timestamp: new Date().toISOString(),
+        isRead: false,
+        type: 'status_change'
+      };
+      
+      // Add notification
+      const updatedNotifications = [newNotification, ...notifications];
+      setNotifications(updatedNotifications);
+      
+      // Save notifications to localStorage immediately
+      localStorage.setItem('notifications', JSON.stringify(updatedNotifications));
+    }
+    
+    setIsLoading(false);
+    
+    toast({
+      title: "Status Updated",
+      description: `The crime report status has been changed to ${status}.`,
+    });
+  };
+
   // Mark notification as read
   const markNotificationAsRead = (id: string) => {
     const updatedNotifications = notifications.map(notification => 
@@ -370,6 +417,7 @@ export const CrimeDataProvider: React.FC<{ children: ReactNode }> = ({ children 
         isLoading,
         fetchCrimeData,
         submitCrimeReport,
+        updateCrimeStatus,
         notifications,
         markNotificationAsRead
       }}

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Clock, MapPin } from 'lucide-react';
@@ -10,6 +11,8 @@ interface RecentCrimesListProps {
 }
 
 const RecentCrimesList: React.FC<RecentCrimesListProps> = ({ crimes }) => {
+  const navigate = useNavigate();
+  
   // Function to format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -35,6 +38,13 @@ const RecentCrimesList: React.FC<RecentCrimesListProps> = ({ crimes }) => {
     }
   };
 
+  // Navigate to reports page with focus on a specific crime
+  const viewCrimeDetails = (crime: CrimeRecord) => {
+    // Store the selected crime ID in sessionStorage to highlight it on the reports page
+    sessionStorage.setItem('selectedCrimeId', crime.id);
+    navigate('/reports');
+  };
+
   return (
     <Card className="col-span-1">
       <CardHeader className="pb-2">
@@ -53,6 +63,7 @@ const RecentCrimesList: React.FC<RecentCrimesListProps> = ({ crimes }) => {
               <div 
                 key={crime.id} 
                 className="border rounded-md p-3 hover:bg-muted/50 transition-colors cursor-pointer"
+                onClick={() => viewCrimeDetails(crime)}
               >
                 <div className="flex justify-between mb-2">
                   <h3 className="font-medium">{crime.type}</h3>

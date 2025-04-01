@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import { useCrimeData } from '@/contexts/CrimeDataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,8 @@ import {
   List,
   Download,
   CalendarIcon,
-  UserCircle2
+  UserCircle2,
+  Edit
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import CrimeReportForm from '@/components/CrimeReportForm';
@@ -28,24 +29,37 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from '@/hooks/use-toast';
 import { CrimeRecord } from '@/contexts/CrimeDataContext';
 
 const Reports: React.FC = () => {
-  const { crimeRecords, isLoading } = useCrimeData();
+  const { crimeRecords, isLoading, updateCrimeStatus } = useCrimeData();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedCrime, setSelectedCrime] = useState<CrimeRecord | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [newStatus, setNewStatus] = useState<'open' | 'investigating' | 'resolved'>('open');
 
-  // Filter crimes based on search query and status
+  const canEditStatus = user && (user.role === 'admin' || user.role === 'law_enforcement');
+
   const filteredCrimes = crimeRecords.filter((crime) => {
     const query = searchQuery.toLowerCase();
     const matchesQuery = 
@@ -59,7 +73,6 @@ const Reports: React.FC = () => {
       : matchesQuery && crime.status === statusFilter;
   });
 
-  // Function to format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -71,7 +84,6 @@ const Reports: React.FC = () => {
     });
   };
 
-  // Get status badge variant
   const getStatusBadge = (status: 'open' | 'investigating' | 'resolved') => {
     switch (status) {
       case 'open':
@@ -85,7 +97,6 @@ const Reports: React.FC = () => {
     }
   };
 
-  // Get severity badge
   const getSeverityBadge = (severity: number) => {
     if (severity >= 8) {
       return <Badge className="bg-crime-veryhigh">High Severity</Badge>;
@@ -96,15 +107,12 @@ const Reports: React.FC = () => {
     }
   };
 
-  // Function to view crime details
   const viewCrimeDetails = (crime: CrimeRecord) => {
     setSelectedCrime(crime);
     setDialogOpen(true);
   };
 
-  // Export to CSV function
   const exportToCSV = () => {
-    // Create CSV content
     const headers = ['Type', 'Location', 'Date/Time', 'Status', 'Severity', 'Description'];
     const csvContent = [
       headers.join(','),
@@ -118,7 +126,6 @@ const Reports: React.FC = () => {
       ].join(','))
     ].join('\n');
 
-    // Create and download the file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -133,6 +140,32 @@ const Reports: React.FC = () => {
       title: "Export Successful",
       description: `${filteredCrimes.length} crime reports have been exported to CSV.`,
     });
+  };
+
+  const handleStatusUpdate = async () => {
+    if (selectedCrime && newStatus) {
+      try {
+        await updateCrimeStatus(selectedCrime.id, newStatus);
+        setSelectedCrime({
+          ...selectedCrime,
+          status: newStatus
+        });
+        setStatusDialogOpen(false);
+      } catch (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Failed to update status',
+          description: 'There was an error updating the crime status.',
+        });
+      }
+    }
+  };
+
+  const openStatusChangeDialog = () => {
+    if (selectedCrime) {
+      setNewStatus(selectedCrime.status);
+      setStatusDialogOpen(true);
+    }
   };
 
   return (
@@ -262,7 +295,6 @@ const Reports: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Crime Details Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-xl">
           {selectedCrime && (
@@ -283,6 +315,17 @@ const Reports: React.FC = () => {
                     {getStatusBadge(selectedCrime.status)}
                     {getSeverityBadge(selectedCrime.severity)}
                   </div>
+                  
+                  {canEditStatus && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={openStatusChangeDialog}
+                      className="flex items-center"
+                    >
+                      <Edit className="h-4 w-4 mr-2" /> Change Status
+                    </Button>
+                  )}
                 </div>
                 
                 <div>
@@ -320,6 +363,40 @@ const Reports: React.FC = () => {
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Update Case Status</DialogTitle>
+            <DialogDescription>
+              Change the status of this crime report.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Select
+              value={newStatus}
+              onValueChange={(value) => setNewStatus(value as 'open' | 'investigating' | 'resolved')}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a new status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="investigating">Investigating</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleStatusUpdate}>
+              Update Status
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
