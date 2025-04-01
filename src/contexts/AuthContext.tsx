@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { toast } from '@/components/ui/use-toast';
 
@@ -125,13 +124,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       throw new Error('Email already in use');
     }
     
-    // Create new user
+    // Create new user with 'public' role
     const newUser = {
       id: crypto.randomUUID(),
       name,
       email,
       password,
-      role: 'public' as UserRole, // Default role for new users
+      role: 'public' as UserRole, // Default role for new users is 'public'
     };
     
     // Add to users array
